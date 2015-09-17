@@ -10,7 +10,8 @@ class StormpathUserTest extends PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
-        self::$account = m::mock('Stormpath\\Resource\\Account');
+        self::$account = m::mock('Stormpath\\Resource\\Account')->makePartial();
+        self::$account->__construct(); // init __get and __set
         self::$spUser = new \Stormpath\StormpathUser(self::$account);
     }
 
@@ -50,6 +51,18 @@ class StormpathUserTest extends PHPUnit_Framework_TestCase
         $tokenName = self::$spUser->getRememberTokenName();
 
         $this->assertEquals('rememberToken', $tokenName, 'The remember token name was not retrieved correctly!');
+    }
+
+    /**
+     * @test
+     */
+    public function it_will_get_remember_token_from_custom_data_of_the_account()
+    {
+        $customData = m::mock('Stormpath\\Resource\\CustomData');
+        $customData->shouldReceive('getProperty')->with('rememberToken')->andReturn('token');
+        self::$account->shouldReceive('getCustomData')->andReturn($customData);
+
+        $this->assertEquals('token', self::$spUser->getRememberToken());
     }
 
 }
